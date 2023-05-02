@@ -42,7 +42,7 @@ container security testing
 
 artifactory maven           vulnerability managment defect dojo
 deploy
-prod enviroment tomcat      reporting metrics 
+prod enviroment tomcat      reporting metrics jira
  
 ### asd
 
