@@ -44,6 +44,9 @@ artifactory maven           vulnerability managment defect dojo
 deploy
 prod enviroment tomcat      reporting metrics jira
  
+
+jenkins plugins suggested + maven integration, blue ocean, deploy to container, ssh agent
+
 ### asd
 
 #### asd
