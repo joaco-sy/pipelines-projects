@@ -3,12 +3,15 @@ services:
   jenkins:
     container_name: jenkins
     hostname: myjenkins.local
-    image: jenkins/jenkins:lts
+    image: myjenkins:2
+    # image: jenkins/jenkins:lts
+    # user: root # user
     ports:
       - "8080:8080"
       - "50000:50000"
     volumes:
       - jenkins_home:/var/jenkins_home
+      - shared_data:/usr/local/tomcat/webapps
     networks:
       - net
 
@@ -28,22 +31,35 @@ services:
     image: tomcat:latest
     ports:
       - "8081:8080"
+    volumes:
+      - shared_data:/usr/local/tomcat/webapps
     networks:
       - net
    
-  sonarqube:
-    container_name: sonarqube
-    image: sonarqube:latest
-    ports:
-      - "9000:9000"
-    environment:
-      SONARQUBE_USERNAME: admin
-      SONARQUBE_PASSWORD: mipassword
+  # sonarqube:
+  #   container_name: sonarqube
+  #   image: sonarqube:latest
+  #   ports:
+  #     - "9000:9000"
+  #   environment:
+  #     SONARQUBE_USERNAME: admin
+  #     SONARQUBE_PASSWORD: mipassword
+  #   networks:
+  #     - net
+
+  trufflehog:
+    container_name: trufflehog
+    image: gesellix/trufflehog
+    command: "--json https://github.com/joaco-sy/java-webapp.git"
+    volumes:
+      - trufflehog_output:/output
     networks:
       - net
 
 volumes:
   jenkins_home:
+  shared_data:
+  trufflehog_output:
   
 networks:
   net:
