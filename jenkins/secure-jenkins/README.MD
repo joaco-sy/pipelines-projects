@@ -1,12 +1,13 @@
 # Implementing Secure CI/CD Pipelines
 
+
+- [Secure Jenkins Pipeline](./Jenkinsfile)
+
 This code snippet is a declarative Jenkins Pipeline script that defines the build and deployment process for a Java web application. It automates various stages of the software development lifecycle, including:
 - ```source code scanning``` for secrets and vulnerabilities
 - performing ```Static Application Security Testing``` (SAST)
 - ```Dynamic Application Security Testing``` (DAST)
 - and deploying the application to a ```Tomcat server```. 
-
-
 
 ## Agent Configuration:
 
