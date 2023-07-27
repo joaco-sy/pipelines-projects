@@ -1,0 +1,58 @@
+stages:          # List of stages for jobs, and their order of execution
+  - deploy
+
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+      when: always
+    - when: never
+
+
+variables:
+  SECURE_FILES_DOWNLOAD_PATH: '.'
+  VAR:
+    value: "hello"
+    description: "pruebadesc"
+    
+
+.deploy_template:
+  before_script:
+    - shopt -s expand_aliases
+    - alias ssh='ssh -i id_rsa -o StrictHostKeyChecking=no'
+    - alias scp='scp -i id_rsa -o StrictHostKeyChecking=no'
+    - download-secure-files
+    - chmod 0600 id_rsa
+
+deploy_svr01:
+  stage: deploy
+  extends: .deploy_template
+  script:
+    - ssh root@svr01.devprov "systemctl stop tomcat"
+    - ssh root@svr01.devprov "cp /usr/share/tomcat/webapps/new_war.war ~/bkp"
+    - ssh root@svr01.devprov "rm -rf /usr/share/tomcat/webapps/*"
+    - scp new_war.war root@svr01.devprov:/usr/share/tomcat/webapps/new_war.war
+    - ssh root@svr01.devprov "chown -R tomcat:tomcat /usr/share/tomcat/webapps"
+    - ssh root@svr01.devprov "systemctl start tomcat"
+
+deploy_svr02:
+  stage: deploy
+  extends: .deploy_template
+  script:
+    - ssh root@svr02.devprov "systemctl stop tomcat"
+    - ssh root@svr02.devprov "cp /usr/share/tomcat/webapps/new_war.war ~/bkp"
+    - ssh root@svr02.devprov "rm -rf /usr/share/tomcat/webapps/*"
+    - scp new_war.war root@svr02.devprov:/usr/share/tomcat/webapps/new_war.war
+    - ssh root@svr02.devprov "chown -R tomcat:tomcat /usr/share/tomcat/webapps"
+    - ssh root@svr02.devprov "systemctl start tomcat"
+
+deploy_svr03:
+  stage: deploy
+  extends: .deploy_template
+  script:
+    - ssh root@svr03.devprov "systemctl stop tomcat"
+    - ssh root@svr03.devprov "cp /usr/share/tomcat/webapps/new_war.war ~/bkp"
+    - ssh root@svr03.devprov "rm -rf /usr/share/tomcat/webapps/*"
+    - scp new_war.war root@svr03.devprov:/usr/share/tomcat/webapps/new_war.war
+    - ssh root@svr03.devprov "chown -R tomcat:tomcat /usr/share/tomcat/webapps"
+    - ssh root@svr03.devprov "systemctl start tomcat"
+

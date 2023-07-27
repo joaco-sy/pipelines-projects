@@ -1,0 +1,75 @@
+pipeline {
+
+    agent any
+
+    tools {
+        maven 'Maven'
+    }
+
+    stages {
+        stage ('start') {
+            steps {
+                sh '''
+                    echo "PATH = ${PATH}"
+                    echo "M2_HOME = ${M2_HOME}"
+                '''
+            }
+        }
+
+
+        stage ('Check-Git-Secrets') {
+            steps {
+               sh 'docker run --rm -v "$PWD:/pwd" trufflesecurity/trufflehog:latest github --repo https://github.com/joaco-sy/java-webapp.git --json'
+            }
+        }      
+       
+        stage ('OWASP Dependency-Check Vulnerabilities') {
+            steps {
+                dependencyCheck additionalArguments: ''' 
+                    -o "./" 
+                    -s "./"
+                    -f "ALL" 
+                    --prettyPrint''', odcInstallation: 'Dependency-owasp'
+                dependencyCheckPublisher pattern: 'dependency-check-report.xml'
+            }     
+        }
+
+    
+        stage ('SAST') {
+            steps {
+            withSonarQubeEnv('sonar') {
+                sh 'mvn sonar:sonar'
+                sh 'cat target/sonar/report-task.txt'
+               }
+            }
+        }
+
+        stage('Vulnerability Scan - Docker ') {
+              steps {
+                sh "bash trivy-docker-image-scan.sh"
+            }
+        }
+
+        stage ('Build') {
+            steps {
+                sh 'mvn clean package'
+            }
+        }
+
+        stage ('Deploy-To-Tomcat') {
+           steps {
+           sshagent(['good']) {
+                sh 'scp -o StrictHostKeyChecking=no target/*.war root@192.168.203.4:/opt/apache-tomcat-10.1.9/webapps/webapp.war'
+                }      
+            }       
+        }
+        
+        stage ('DAST') {
+            steps {
+                sh 'docker run -t owasp/zap2docker-stable zap-baseline.py -t http://192.168.203.4:8080/webapp/ || true'
+            }
+        }
+
+    } 
+   
+} 

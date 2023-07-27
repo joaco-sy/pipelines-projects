@@ -1,0 +1,71 @@
+version: '3.8'
+
+volumes:
+  jenkins_home:
+  shared_data:
+  trufflehog_output:
+  
+networks:
+  jenkins:
+
+services:
+  jenkins:
+    container_name: jenkins
+    image: jenkins/jenkins:lts
+    #image: ultjenkins:2
+    privileged: true
+    user: root
+    ports:
+      - 8080:8080
+      - 50000:50000
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      # - shared_data:/usr/local/tomcat/webapps
+      - /var/run/docker.sock:/var/run/docker.sock
+      # - /usr/local/bin/docker:/usr/bin/docker
+      - /drives/c/Program Files/Docker/Docker/resources/bin/docker:/usr/bin/docker
+    networks:
+      - jenkins
+
+  # agent:
+  #   image: jenkins/ssh-agent:jdk11
+  #   privileged: true
+  #   user: root
+  #   container_name: agent
+  #   expose:
+  #     - 22
+  #   environment:
+  #     - JENKINS_AGENT_SSH_PUBKEY=ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDjFila9X0YdEY2sxBxvfaX6GhIh0l94OI4IvFXK9tz3tw816cQ5/4Wtck4/auoeXQaKDQ3pXJ8n2S99oadtslORC9TlMpJ07soxffG2MLDIRvpx8/U2jc5l+/aFYfRP2VqlaUXuFcuILQRZI60ZmqpE7lkkMhPvYmkHdgZal5wAjCkCpsSDekBwZyoi3dwm3hoVJ+A9MGUMTvl2ofvJ3ZmXt0pnYtSrZHqOVvbPjhe5btOaq91Edgtg5T2lcTp1bCyLcKbafN47ZZkE4gVYYIEs0juSq2N/t4W4Af9BUldBROYk0hpjKT+riFaZrrm9yU7KdyhizfD2gbWPlaW6fWKtQoGFxTkqQ/Xpk0i4un2fRgz9rwJFLzOx3CjSY/qffTQhvfMOutujv5G21u6IWl4ttgyF5d7niQsjBSac0gQ5MJk9JfynrsA6t4/XkEG6ay6S1s/L1aStaQI4DkA9HS5I4gmhT4WmReuSejsyGXGGgHwE7lRmJQ731dwf9mkecM= root@5eb8254add8e
+  #   networks:
+  #     - jenkins
+
+  tomcat:
+    container_name: tomcat
+    hostname: mytomcat.local
+    image: tomcat:latest
+    ports:
+      - "8081:8080"
+    volumes:
+      - shared_data:/usr/local/tomcat/webapps
+    networks:
+      - jenkins
+   
+  sonarqube:
+    container_name: sonarqube
+    image: sonarqube:latest
+    ports:
+      - "9000:9000"
+    environment:
+      SONARQUBE_USERNAME: admin
+      SONARQUBE_PASSWORD: mipassword
+    networks:
+      - jenkins
+
+  # trufflehog:
+  #   container_name: trufflehog
+  #   image: gesellix/trufflehog
+  #   command: "--json https://github.com/joaco-sy/java-webapp.git"
+  #   volumes:
+  #     - trufflehog_output:/output
+  #   networks:
+  #     - jenkins
